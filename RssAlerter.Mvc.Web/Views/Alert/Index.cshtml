@@ -1,0 +1,85 @@
+﻿@model RssAlerter.Models.AlertBoards.AlertBoard
+
+@{
+    Layout = "_Board_Layout.cshtml";
+    ViewBag.Title = "Index";
+}
+
+<h2>@Model.Name</h2>
+
+<h3>@Model.Description</h3>
+
+<div id="stats">
+    There are <span id="pending">0</span> alerts waiting to be displayed
+</div>
+
+<div id="main">
+<div id="alertContainer"></div>
+</div>
+
+<script type="text/javascript" src="/signalr/hubs"></script>
+
+<script type="text/javascript">
+    var alertHub;
+    var itemList = [];
+    var animationInProgress = false;
+    $(function ()
+    {
+        //debugger;
+
+        var showItems = function ()
+        {
+            if (itemList.length > 0 && animationInProgress === false)
+            {
+                //debugger;
+                animationInProgress = true;
+
+                var item = itemList.shift();
+
+                var slidePanel = $('<div class="slidePanel" style="display:none;padding:10px;"/>');
+
+                var fadePanel = $('<div class="fadePanel" style="opacity:0;filter:alpha(opacity=0);"/>');
+                fadePanel.append($('<h3 class="itemTitle" />').text(item.Title));
+                fadePanel.append($('<div class="itemTimestamp" />').text(item.PubDate.toString()));
+                fadePanel.append($('<div class="itemContent" />').text(item.Description.substring(0, 140)));
+
+                slidePanel.append(fadePanel);
+                $('#alertContainer').prepend(slidePanel);
+
+                slidePanel.slideDown(500, function ()
+                {
+                    fadePanel.animate({ opacity: "1" }, 500, function ()
+                    {
+                        animationInProgress = false;
+                        showItems();
+                    });
+                });
+            }
+
+            $('#pending').text(itemList.length);
+        };
+
+        alertHub = $.connection.alertHub;
+        alertHub.notifyItem = function (item)
+        {
+            //debugger;
+            item.PubDate = new Date(parseInt(item.PubDate.replace(/(^.*\()|([+-].*$)/g, '')));
+            itemList.push(item);
+            showItems();
+        };
+        alertHub.notifyItems = function (items)
+        {
+            //debugger;
+            for (var i = 0; i < items.length; i++)
+            {
+                var item = items[i];
+                item.PubDate = new Date(parseInt(item.PubDate.replace(/(^.*\()|([+-].*$)/g, '')));
+                itemList.push(item);
+            }
+
+            showItems();
+        }
+
+        $.connection.hub.start(function () { alertHub.register(@Model.Id); });
+    });
+</script>

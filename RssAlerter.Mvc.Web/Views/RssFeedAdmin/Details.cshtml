@@ -1,0 +1,25 @@
+﻿@model RssAlerter.Models.AlertSources.RssFeedAlertSource
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<fieldset>
+    <legend>RssFeedAlertSource</legend>
+
+    <div class="display-label">FeedUri</div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.FeedUri)
+    </div>
+
+    <div class="display-label">UpdateFrequency</div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.UpdateFrequency)
+    </div>
+</fieldset>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
